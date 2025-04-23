@@ -1,15 +1,15 @@
 const User = require("../models/user");
 
 // Fonction utilitaire pour extraire les paramètres utilisateur du corps de la requête
-const getUserParams = body => {
+const getUserParams = (body = {}) => {
   return {
     name: {
-      first: body.first,
-      last: body.last
+      first: body.first || "",
+      last: body.last || ""
     },
-    email: body.email,
-    password: body.password,
-    zipCode: body.zipCode
+    email: body.email || "",
+    password: body.password || "",
+    zipCode: body.zipCode || ""
   };
 };
 
@@ -25,16 +25,17 @@ module.exports = {
         next(error);
       });
   },
-  
+
   indexView: (req, res) => {
     res.render("users/index");
   },
-  
+
   new: (req, res) => {
     res.render("users/new");
   },
-  
+
   create: (req, res, next) => {
+    console.log("Données reçues :", req.body); // Pour vérifier ce qui est envoyé
     let userParams = getUserParams(req.body);
     User.create(userParams)
       .then(user => {
@@ -48,13 +49,13 @@ module.exports = {
         next();
       });
   },
-  
+
   redirectView: (req, res, next) => {
     let redirectPath = res.locals.redirect;
     if (redirectPath) res.redirect(redirectPath);
     else next();
   },
-  
+
   show: (req, res, next) => {
     let userId = req.params.id;
     User.findById(userId)
@@ -67,11 +68,11 @@ module.exports = {
         next(error);
       });
   },
-  
+
   showView: (req, res) => {
     res.render("users/show");
   },
-  
+
   edit: (req, res, next) => {
     let userId = req.params.id;
     User.findById(userId)
@@ -85,7 +86,7 @@ module.exports = {
         next(error);
       });
   },
-  
+
   update: (req, res, next) => {
     let userId = req.params.id,
       userParams = getUserParams(req.body);
@@ -102,17 +103,17 @@ module.exports = {
         next(error);
       });
   },
-  
+
   delete: (req, res, next) => {
     let userId = req.params.id;
-    User.findByIdAndDelete(userId)
+    User.findByIdAndRemove(userId)
       .then(() => {
         res.locals.redirect = "/users";
         next();
       })
       .catch(error => {
         console.log(`Erreur lors de la suppression de l'utilisateur par ID: ${error.message}`);
-        res.status(500).send(`Erreur lors de la suppression: ${error.message}`);
+        next();
       });
   }
 };
